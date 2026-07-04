@@ -23,6 +23,7 @@ import cors from "cors";
 import { cloudinaryConnect } from "./config/cloudinary.js";
 import dotenv from "dotenv";
 import fileUpload from "express-fileupload";
+import { frontendUrl } from "./constants.js/url.js";
 dotenv.config();
 const port = process.env.PORT || 4000;
 
@@ -30,7 +31,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: frontendUrl,
     credentials: true,
   }),
 );
