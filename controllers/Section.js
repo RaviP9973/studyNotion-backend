@@ -1,7 +1,10 @@
-const Course = require("../models/Course");
-const Section = require("../models/section");
+// const Course = require("../models/Course");
+// const Section = require("../models/section");
 
-exports.createSection = async (req, res) => {
+import Course from "../models/Course.js";
+import Section from "../models/section.js";
+
+export const createSection = async (req, res) => {
   try {
     // data fetch
     const { sectionName, courseId } = req.body;
@@ -50,7 +53,7 @@ exports.createSection = async (req, res) => {
   }
 };
 
-exports.updateSection = async (req, res) => {
+export const updateSection = async (req, res) => {
   try {
     const { sectionName, sectionId, courseId } = req.body;
     if (!sectionName || !sectionId) {
@@ -89,7 +92,7 @@ exports.updateSection = async (req, res) => {
   }
 };
 
-exports.deleteSection = async (req, res) => {
+export const deleteSection = async (req, res) => {
   try {
     // Assuming that we are sending id in params
     // const {sectionId} = req. ;

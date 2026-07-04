@@ -1,6 +1,6 @@
-const Razorpay = require("razorpay")
+import Razorpay from "razorpay";
 
-exports.instance = new Razorpay({
+export const instance = new Razorpay({
     key_id: process.env.REACT_APP_RAZORPAY_KEY,
     key_secret: process.env.RAZORPAY_SECRET
-})
+});

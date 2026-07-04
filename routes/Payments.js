@@ -1,10 +1,10 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const { capturePayment, verifySignature ,sendPaymentSuccessEmail} = require("../controllers/Payments");
-const { auth, isInstructor, isStudent, isAdmin} = require("../middleware/auth")
+import { capturePayment, verifySignature, sendPaymentSuccessEmail } from "../controllers/Payments.js";
+import { auth, isStudent } from "../middleware/auth.js";
 
 router.post("/capturePayment",auth,isStudent,capturePayment);
 router.post("/verifySignature",auth,isStudent, verifySignature)
 router.post("/sendPaymentSuccessEmail",auth,isStudent,sendPaymentSuccessEmail)
-module.exports = router
+export default router;

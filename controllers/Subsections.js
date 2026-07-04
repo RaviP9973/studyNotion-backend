@@ -1,8 +1,12 @@
-const Subsection = require("../models/Subsection");
-const Section = require("../models/section");
-const { uploadImageToCloudinary } = require("../utils/imageUploader");
+// const Subsection = require("../models/Subsection");
+// const Section = require("../models/section");
+// const { uploadImageToCloudinary } = require("../utils/imageUploader");
 
-exports.createSubsection = async (req, res) => {
+import Subsection from "../models/Subsection.js";
+import Section from "../models/section.js";
+import { uploadImageToCloudinary } from "../utils/imageUploader.js";
+
+export const createSubsection = async (req, res) => {
   try {
     //fetch data from req.body
     const { sectionId, title, description } = req.body;
@@ -71,7 +75,7 @@ exports.createSubsection = async (req, res) => {
   }
 };
 
-exports.updateSubSection = async (req, res) => {
+export const updateSubSection = async (req, res) => {
   try {
     const { sectionId,subsectionId, title, description } = req.body;
     console.log("body image", req.body.video);
@@ -131,7 +135,7 @@ exports.updateSubSection = async (req, res) => {
 
 //try krna h
 
-exports.deleteSubSection = async (req, res) => {
+export const deleteSubSection = async (req, res) => {
   try {
     const { subsectionId, sectionId } = req.body;
     console.log("subsection ", subsectionId);

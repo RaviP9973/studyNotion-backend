@@ -1,5 +1,8 @@
-const mongoose = require("mongoose")
-const Subsection = require("./Subsection")
+// const mongoose = require("mongoose")
+// const Subsection = require("./Subsection")
+
+import mongoose from "mongoose";
+import Subsection from "./Subsection.js";
 
 const sectionSchema = new mongoose.Schema({
     sectionName:{
@@ -14,4 +17,4 @@ const sectionSchema = new mongoose.Schema({
     ]
 })
 
-module.exports = mongoose.model("Section",sectionSchema);
+export default mongoose.model("Section",sectionSchema);

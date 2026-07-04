@@ -1,14 +1,23 @@
-const Profile = require("../models/Profile");
-const Courses = require("../models/Course");
-const User = require("../models/User");
-const bcrypt = require("bcrypt");
-const { uploadImageToCloudinary } = require("../utils/imageUploader");
-const courseProgress = require("../models/courseProgress");
-const Course = require("../models/Course");
-const { deleteImages} = require("../utils/deleteImageAndVideos");
+// const Profile = require("../models/Profile");
+// const Courses = require("../models/Course");
+// const User = require("../models/User");
+// const bcrypt = require("bcrypt");
+// const { uploadImageToCloudinary } = require("../utils/imageUploader");
+// const courseProgress = require("../models/courseProgress");
+// const Course = require("../models/Course");
+// const { deleteImages} = require("../utils/deleteImageAndVideos");
 // const courseProgress = require("../models/courseProgress")
 
-exports.updateProfile = async (req, res) => {
+import Profile from "../models/Profile.js";
+import Courses from "../models/Course.js";
+import User from "../models/User.js"; 
+import bcrypt from "bcrypt";
+import { uploadImageToCloudinary } from "../utils/imageUploader.js";
+import courseProgress from "../models/courseProgress.js";
+import Course from "../models/Course.js";
+import { deleteImages } from "../utils/deleteImageAndVideos.js";
+
+export const updateProfile = async (req, res) => {
   try {
     const {
       dateOfBirth = "",
@@ -63,7 +72,7 @@ exports.updateProfile = async (req, res) => {
 
 //delete account
 
-exports.deleteAccount = async (req, res) => {
+export const deleteAccount = async (req, res) => {
   try {
     //fetch details
     // console.log(id)
@@ -146,7 +155,7 @@ exports.deleteAccount = async (req, res) => {
   }
 };
 
-exports.getAllUserDetails = async (req, res) => {
+export const getAllUserDetails = async (req, res) => {
   try {
     const id = req.user.id;
     if (!id) {
@@ -173,7 +182,7 @@ exports.getAllUserDetails = async (req, res) => {
   }
 };
 
-exports.updateDisplayPicture = async (req, res) => {
+export const updateDisplayPicture = async (req, res) => {
   try {
     // console.log("inside the updateDisplayPicture")
     const userId = req.user.id;
@@ -225,7 +234,7 @@ exports.updateDisplayPicture = async (req, res) => {
 };
 
 //copied from somewhere
-exports.getEnrolledCourses = async (req, res) => {
+export const getEnrolledCourses = async (req, res) => {
   try {
     // console.log("Yaha to aa rha hu ")
     const userId = req.user.id;
@@ -298,7 +307,7 @@ function convertSecondsToDuration(totalSeconds) {
   return `${hours}h ${minutes}m ${seconds}s`;
 }
 
-exports.instructorDashboard = async(req,res) => {
+export const instructorDashboard = async(req,res) => {
   try {
     const courseDetails = await Course.find({instructor: req.user.id})
 

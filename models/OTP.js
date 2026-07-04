@@ -1,6 +1,11 @@
-const mongoose = require("mongoose");
-const mailSender = require("../utils/mailSender");
-const emailTemplate = require("../mail/emailVerificationTemplate");
+// const mongoose = require("mongoose");
+// const mailSender = require("../utils/mailSender");
+// const emailTemplate = require("../mail/emailVerificationTemplate");
+// no need
+import mongoose from "mongoose";
+import mailSender from "../utils/mailSender.js";
+import emailTemplate from "../mail/emailVerificationTemplate.js";
+
 const OTPSchema = new mongoose.Schema({
   email: { type: String, required: true },
   otp: {
@@ -14,22 +19,22 @@ const OTPSchema = new mongoose.Schema({
   },
 });
 
-async function sendVerficationEmail(email, otp) {
-  try {
-    const mailResponse = await mailSender(
-      email,
-      "verifaction email",
-      emailTemplate(otp)
-    );
-    console.log("email sent successfully", mailResponse);
-  } catch (error) {
-    console.log("Error in sending mail ", error);
-  }
-}
+// async function sendVerficationEmail(email, otp) {
+//   try {
+//     const mailResponse = await mailSender(
+//       email,
+//       "verifaction email",
+//       emailTemplate(otp)
+//     );
+//     console.log("email sent successfully", mailResponse);
+//   } catch (error) {
+//     console.log("Error in sending mail ", error);
+//   }
+// }
 
-OTPSchema.pre("save", async function (next) {
-  await sendVerficationEmail(this.email, this.otp);
-  next();
-});
+// OTPSchema.pre("save", async function (next) {
+//   await sendVerficationEmail(this.email, this.otp);
+//   next();
+// });
 
-module.exports = mongoose.model("OTP", OTPSchema);
+export default mongoose.model("OTP", OTPSchema);

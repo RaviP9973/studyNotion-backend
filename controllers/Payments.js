@@ -1,17 +1,27 @@
-const { default: mongoose } = require("mongoose");
-const { instance } = require("../config/razorpay");
-const Course = require("../models/Course");
-const User = require("../models/User");
-const mailSender = require("../utils/mailSender");
-// const { useId } = require("react");
-const { courseEnrollmentEmail } = require("../mail/courseEnrollmentEmail");
-const { paymentSuccessEmail } = require("../mail/paymentSuccessEmail");
-const crypto = require("crypto");
-const courseProgress = require("../models/courseProgress");
+// const { default: mongoose } = require("mongoose");
+// const { instance } = require("../config/razorpay");
+// const Course = require("../models/Course");
+// const User = require("../models/User");
+// const mailSender = require("../utils/mailSender");
+// // const { useId } = require("react");
+// const { courseEnrollmentEmail } = require("../mail/courseEnrollmentEmail");
+// const { paymentSuccessEmail } = require("../mail/paymentSuccessEmail");
+// const crypto = require("crypto");
+// const courseProgress = require("../models/courseProgress");
 // const courseProgress = require("../models/courseProgress");
 //
 
-exports.capturePayment = async (req, res) => {
+import { default as mongoose } from "mongoose";
+import { instance } from "../config/razorpay.js";
+import Course from "../models/Course.js"; 
+import User from "../models/User.js";
+import mailSender from "../utils/mailSender.js";
+import { courseEnrollmentEmail } from "../mail/courseEnrollmentEmail.js";
+import { paymentSuccessEmail } from "../mail/paymentSuccessEmail.js";
+import crypto from "crypto";
+import courseProgress from "../models/courseProgress.js";
+
+export const capturePayment = async (req, res) => {
   // get courseId and UserId
   const { courses } = req.body;
   console.log(courses);
@@ -96,7 +106,7 @@ exports.capturePayment = async (req, res) => {
   }
 };
 
-exports.verifySignature = async (req, res) => {
+export const verifySignature = async (req, res) => {
   const razorpay_order_id = req.body?.razorpay_order_id;
 
   const razorpay_payment_id = req.body?.razorpay_payment_id;
@@ -205,7 +215,7 @@ const enrolledStudents = async (courses, userId, res) => {
   }
 };
 
-exports.sendPaymentSuccessEmail = async(req,res) => {
+export const sendPaymentSuccessEmail = async(req,res) => {
   const {orderId,paymentId,amount} = req.body;
   const userId = req.user.id;
 

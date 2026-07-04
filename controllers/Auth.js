@@ -1,13 +1,17 @@
-const User = require("../models/User");
-const OTP = require("../models/OTP");
-const otpGenerator = require("otp-generator");
-const bcrypt = require("bcrypt");
-const Profile = require("../models/Profile");
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
-
+import User from "../models/User.js";
+import OTP from "../models/OTP.js";
+import otpGenerator from "otp-generator";
+// import otpGenerator from "otp-generator";
+import bcrypt from "bcrypt";
+import Profile from "../models/Profile.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
+import redisClient from "../config/redis.js"
+import mailSender from "../utils/mailSender.js";
+import emailTemplate from "../mail/emailVerificationTemplate.js"
 // send otp
-exports.sendOTP = async (req, res) => {
+export const sendOTP = async (req, res) => {
   try {
     //fetch email from req
     const { email } = req.body;
@@ -22,6 +26,17 @@ exports.sendOTP = async (req, res) => {
       });
     }
 
+    const rateLimitKey = `otp:rateLimit:${email}`
+
+    const rateLimit = await redisClient.get(rateLimitKey)
+
+    if (rateLimit) {
+      return res.status(403).json({
+        success: false,
+        message: "Please wait for 1 minute before sending another OTP",
+      });
+    }
+    await redisClient.set(rateLimitKey, "1", { EX: 60 });
     //generate otp
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
@@ -29,10 +44,20 @@ exports.sendOTP = async (req, res) => {
       specialChars: false,
     });
 
-    const otpPayload = { email, otp };
+    // const otpPayload = { email, otp };
+
+    const optKey = `otp:${email}`
 
     //create entry for otp
-    await OTP.create(otpPayload);
+    await redisClient.set(optKey, otp, { EX: 5 * 60 });
+    // await OTP.create(otpPayload);
+
+    const mailResponse = await mailSender(
+      email,
+      "verifaction email",
+      emailTemplate(otp)
+    );
+    console.log("email sent successfully", mailResponse);
 
     // return response
     res.status(200).json({
@@ -40,6 +65,7 @@ exports.sendOTP = async (req, res) => {
       meassage: "OTP sent successfully",
       // otp,
     });
+
   } catch (error) {
     console.log("Error in generating opt", error);
     return res.status(500).json({
@@ -50,7 +76,7 @@ exports.sendOTP = async (req, res) => {
 };
 
 // signup
-exports.signUp = async (req, res) => {
+export const signUp = async (req, res) => {
   try {
     //fetch details
     const {
@@ -90,11 +116,15 @@ exports.signUp = async (req, res) => {
     }
 
     //check for existinig user
+    console.log("check for existinig user");
     const [existingUser, recentOtp] = await Promise.all([
       User.findOne({ email }),
-      OTP.findOne({ email }).sort({ createdAt: -1 }).limit(1),
+      // OTP.findOne({ email }).sort({ createdAt: -1 }).limit(1),
+      redisClient.get(`otp:${email}`)
     ])
     // const existingUser = await User.findOne({ email });
+    console.log("existingUser", existingUser);
+    console.log('recivevotp', recentOtp);
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -105,18 +135,19 @@ exports.signUp = async (req, res) => {
     //find most recent otp
     // const recentOtp = await OTP.find({ email })
     //   .sort({ createdAt: -1 })
-      // .limit(1);
+    // .limit(1);
 
-      // const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 }).limit(1);
+    // const recentOtp = await OTP.findOne({ email }).sort({ createdAt: -1 }).limit(1);
     //validate otp
     // console.log(otp);
-    if (!recentOtp || recentOtp.otp !== otp) {
+    if (!recentOtp || recentOtp !== otp) {
       return res.status(400).json({
         success: false,
         meassage: "Enter correct Otp",
       });
     }
 
+    await redisClient.del(`otp:${email}`);
     //Hash password
     const hashedPassord = await bcrypt.hash(password, 10);
 
@@ -158,7 +189,7 @@ exports.signUp = async (req, res) => {
 };
 
 //login
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -202,7 +233,7 @@ exports.login = async (req, res) => {
       res.cookie("token", token, options).status(200).json({
         success: true,
         token,
-        user:existingUser,
+        user: existingUser,
         message: "Logged in succesfully",
       });
     } else {
@@ -221,7 +252,7 @@ exports.login = async (req, res) => {
 };
 
 // change pass
-exports.changePassword = async (req, res) => {
+export const changePassword = async (req, res) => {
   try {
     // console.log("entered backend")
     const { password, newPassword } = req.body;
@@ -233,11 +264,11 @@ exports.changePassword = async (req, res) => {
         message: "Please fill all details",
       });
     }
-    if(newPassword == password){
+    if (newPassword == password) {
       return res.status(400).json({
         success: false,
         message: "New password cannot be same as old password",
-        
+
       })
     }
 
@@ -249,7 +280,7 @@ exports.changePassword = async (req, res) => {
     // }
     const userDetails = await User.findById(userId).select('password').lean();
 
-    if(!userDetails){
+    if (!userDetails) {
       return res.status(404).json({
         success: false,
         message: "User not found",
@@ -257,10 +288,10 @@ exports.changePassword = async (req, res) => {
     }
     const passMatch = await bcrypt.compare(password, userDetails.password);
 
-    if(!passMatch){
+    if (!passMatch) {
       return res.status(403).json({
-        success:false,
-        message:"Password did'nt mathced",
+        success: false,
+        message: "Password did'nt mathced",
       })
     }
 

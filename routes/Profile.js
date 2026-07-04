@@ -1,14 +1,14 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const { auth, isInstructor } = require("../middleware/auth");
-const {
+import { auth, isInstructor } from "../middleware/auth.js";
+import {
   deleteAccount,
   updateProfile,
   getAllUserDetails,
   updateDisplayPicture,
   getEnrolledCourses,
   instructorDashboard,
-} = require("../controllers/Profile");
+} from "../controllers/Profile.js";
 
 
 router.delete("/deleteProfile",auth, deleteAccount);
@@ -21,4 +21,4 @@ router.get("/instructorDashboard",auth,isInstructor, instructorDashboard);
 router.get("/getEnrolledCourses",auth,getEnrolledCourses)
 router.put("/updateDisplayPicture",auth,updateDisplayPicture)
 
-module.exports = router
+export default router;

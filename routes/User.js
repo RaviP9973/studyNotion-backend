@@ -1,9 +1,9 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const { login, signUp, sendOTP,changePassword,} = require("../controllers/Auth")
-const { resetPasswordToken , resetPassword} = require("../controllers/ResetPass")
+import { login, signUp, sendOTP, changePassword } from "../controllers/Auth.js";
+import { resetPasswordToken, resetPassword } from "../controllers/ResetPass.js";
 
-const {auth} = require("../middleware/auth")
+import { auth } from "../middleware/auth.js";
 
 router.post("/login",login)
 router.post("/signup",signUp)
@@ -15,4 +15,4 @@ router.put("/changepassword",auth,changePassword)
 router.post("/reset-password-token",resetPasswordToken);
 
 router.post("/reset-password",resetPassword)
-module.exports = router;
+export default router;

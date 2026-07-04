@@ -1,11 +1,12 @@
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 
 // Cache JWT secret to avoid repeated env access (optimization)
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // auth - Optimized middleware
-exports.auth = async (req, res, next) => {
+export const auth = async (req, res, next) => {
   try {
     const authHeader = req.header("Authorization") || req.header("authorization");
     const tokenFromHeader = authHeader?.startsWith("Bearer ")
@@ -48,7 +49,7 @@ exports.auth = async (req, res, next) => {
 };
 
 // isStudent - Check if user is a student (removed async - no await needed)
-exports.isStudent = (req, res, next) => {
+export const isStudent = (req, res, next) => {
   try {
     if (req.user.accountType !== "Student") {
       return res.status(401).json({
@@ -66,7 +67,7 @@ exports.isStudent = (req, res, next) => {
 };
 
 // isInstructor - Check if user is an instructor (removed async - no await needed)
-exports.isInstructor = (req, res, next) => {
+export const isInstructor = (req, res, next) => {
   try {
     if (req.user.accountType !== "Instructor") {
       return res.status(401).json({
@@ -84,7 +85,7 @@ exports.isInstructor = (req, res, next) => {
 };
 
 // isAdmin - Check if user is an admin (removed async - no await needed)
-exports.isAdmin = (req, res, next) => {
+export const isAdmin = (req, res, next) => {
   try {
     if (req.user.accountType !== "Admin") {
       return res.status(401).json({

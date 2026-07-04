@@ -1,18 +1,17 @@
-const Course = require("../models/Course");
-const Category = require("../models/category");
-const User = require("../models/User");
-// const SubSection = require("../models/Subsection")
-const { uploadImageToCloudinary } = require("../utils/imageUploader");
-const courseProgress = require("../models/courseProgress");
-const { convertSecondsToDuration } = require("../utils/secToDuration");
-const { deleteImage, deleteImages } = require("../utils/deleteImageAndVideos");
-const Subsection = require("../models/Subsection");
-const Section = require("../models/section");
-const RatingAndReview = require("../models/RatingAndReview");
-const category = require("../models/category");
+import Course from "../models/Course.js";
+import Category from "../models/Category.js";
+import User from "../models/User.js";
+import { uploadImageToCloudinary } from "../utils/imageUploader.js";
+import courseProgress from "../models/courseProgress.js";
+import { convertSecondsToDuration } from "../utils/secToDuration.js";
+import { deleteImages } from "../utils/deleteImageAndVideos.js";
+import Subsection from "../models/Subsection.js";
+import Section from "../models/section.js";
+import RatingAndReview from "../models/RatingAndReview.js";
+import category from "../models/Category.js";
+import redisClient from "../config/redis.js";
 
-//create course handler function
-exports.createCourse = async (req, res) => {
+export const createCourse = async (req, res) => {
   try {
     //fetch data
     let {
@@ -118,6 +117,20 @@ exports.createCourse = async (req, res) => {
       { new: true }
     );
     console.log(categor);
+    let cursor = 0;
+
+    do {
+      const result = await redisClient.scan(cursor, {
+        MATCH: "category:*",
+        COUNT: 100,
+      });
+
+      cursor = result.cursor;
+
+      if (result.keys.length) {
+        await redisClient.del(result.keys);
+      }
+    } while (cursor !== 0);
 
     return res.status(200).json({
       success: true,
@@ -134,12 +147,12 @@ exports.createCourse = async (req, res) => {
   }
 };
 
-exports.updateCourse = async (req, res) => {
+export const updateCourse = async (req, res) => {
   try {
     const { courseId } = req.body;
     const updates = req.body;
     // let {status} = req.body;
-    console.log("updates", updates);
+    // console.log("updates", updates);
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({
@@ -147,7 +160,7 @@ exports.updateCourse = async (req, res) => {
         message: "Course not found",
       });
     }
-    console.log("req.files", req.files);
+    // console.log("req.files", req.files);
 
     if (req.files) {
       const thumbnail = req.files.thumbnail;
@@ -156,7 +169,7 @@ exports.updateCourse = async (req, res) => {
         process.env.FOLDER_NAME
       );
 
-      console.log("thumb", thumbnailImage);
+      // console.log("thumb", thumbnailImage);
       course.thumbnail = thumbnailImage.secure_url;
     }
 
@@ -171,24 +184,6 @@ exports.updateCourse = async (req, res) => {
     }
 
     await course.save();
-
-    // const newCourse = await Course.findByIdAndUpdate(
-    //   courseId,
-
-    //   {
-    //     name: courseName || course.courseName,
-    //     courseDescription: courseDescription || course.courseDescription,
-    //     instructor: course.instructor,
-    //     whatYouWillLearn: whatYouWillLearn || course.whatYouWillLearn,
-    //     price: price || course.price,
-    //     category: categoryDetails._id,
-    //     thumbnail: thumbnailImage.secure_url,
-    //     tag: tag || course.tag,
-    //     instructions: instructions || course.instructions,
-    //     status:status,
-    //   },
-    //   {new:true}
-    // );
 
     const newCourse = await Course.findById(courseId)
       .populate({
@@ -206,6 +201,21 @@ exports.updateCourse = async (req, res) => {
         },
       })
       .exec();
+
+    let cursor = 0;
+
+    do {
+      const result = await redisClient.scan(cursor, {
+        MATCH: "category:*",
+        COUNT: 100,
+      });
+
+      cursor = result.cursor;
+
+      if (result.keys.length) {
+        await redisClient.del(result.keys);
+      }
+    } while (cursor !== 0);
     return res.status(200).json({
       success: true,
       message: "course updated successfully",
@@ -220,7 +230,7 @@ exports.updateCourse = async (req, res) => {
   }
 };
 
-exports.deleteCourse = async (req, res) => {
+export const deleteCourse = async (req, res) => {
   try {
     const { courseId } = req.body;
     // console.log(courseId);
@@ -305,6 +315,20 @@ exports.deleteCourse = async (req, res) => {
       })
       .exec();
 
+    let cursor = 0;
+
+    do {
+      const result = await redisClient.scan(cursor, {
+        MATCH: "category:*",
+        COUNT: 100,
+      });
+
+      cursor = result.cursor;
+
+      if (result.keys.length) {
+        await redisClient.del(result.keys);
+      }
+    } while (cursor !== 0);
     return res.status(200).json({
       success: true,
       data: allCourses,
@@ -318,7 +342,7 @@ exports.deleteCourse = async (req, res) => {
   }
 };
 //get all courses handler function
-exports.showAllCourses = async (req, res) => {
+export const showAllCourses = async (req, res) => {
   try {
     const allCourses = await Course.find(
       {},
@@ -349,7 +373,7 @@ exports.showAllCourses = async (req, res) => {
   }
 };
 
-exports.getCourseDetails = async (req, res) => {
+export const getCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.body;
     const userId = req.user.id;
@@ -417,7 +441,7 @@ exports.getCourseDetails = async (req, res) => {
   }
 };
 
-exports.fetchInstructorCourses = async (req, res) => {
+export const fetchInstructorCourses = async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -430,22 +454,22 @@ exports.fetchInstructorCourses = async (req, res) => {
       })
       .exec();
 
-      // allCourses = allCourses.toObject();
-      allCourses = allCourses.map(course => course.toObject());
+    // allCourses = allCourses.toObject();
+    allCourses = allCourses.map(course => course.toObject());
 
-      // console.log("all courses",allCourses);
-      for(var i = 0; i < allCourses.length; i++){
-        let totalDurationInSeconds = 0;
-        // let SubsectionLength = 0;
-        for(var j = 0; j < allCourses[i].courseContent.length; j++){
-          totalDurationInSeconds += allCourses[i].courseContent[j].subSection.reduce((acc, curr) => acc + parseInt(curr.timeDuration), 0);
+    // console.log("all courses",allCourses);
+    for (var i = 0; i < allCourses.length; i++) {
+      let totalDurationInSeconds = 0;
+      // let SubsectionLength = 0;
+      for (var j = 0; j < allCourses[i].courseContent.length; j++) {
+        totalDurationInSeconds += allCourses[i].courseContent[j].subSection.reduce((acc, curr) => acc + parseInt(curr.timeDuration), 0);
 
-          allCourses[i].totalDuration = convertSecondsToDuration(totalDurationInSeconds);
-          // console.log(allCourses[i].totalDuration);
+        allCourses[i].totalDuration = convertSecondsToDuration(totalDurationInSeconds);
+        // console.log(allCourses[i].totalDuration);
 
-        }
       }
-      // console.log("all courses",allCourses);
+    }
+    // console.log("all courses",allCourses);
     return res.status(200).json({
       success: true,
       data: allCourses,
@@ -460,75 +484,75 @@ exports.fetchInstructorCourses = async (req, res) => {
   }
 };
 
-exports.getFullCourseDetails = async (req, res) => {
-	try {
-	  const { courseId } = req.body
-	  // const userId = req.user.id
-	  const courseDetails = await Course.findOne({
-		_id: courseId,
-	  })
-		.populate({
-		  path: "instructor",
-		  populate: {
-			path: "additionalDetails",
-      select:"about"
-		  },
-		})
-		.populate("category")
-		.populate("ratingAndReviews")
-		.populate({
-		  path: "courseContent",
-		  populate: {
-			path: "subSection",
-      select:"title"
-		  },
-		})
-		.exec()
+export const getFullCourseDetails = async (req, res) => {
+  try {
+    const { courseId } = req.body
+    // const userId = req.user.id
+    const courseDetails = await Course.findOne({
+      _id: courseId,
+    })
+      .populate({
+        path: "instructor",
+        populate: {
+          path: "additionalDetails",
+          select: "about"
+        },
+      })
+      .populate("category")
+      .populate("ratingAndReviews")
+      .populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection",
+          select: "title"
+        },
+      })
+      .exec()
 
-		
-	  // let courseProgressCount = await courseProgress.findOne({
-		// courseID: courseId,
-		// userID: userId,
-	  // })
-  
-	  // console.log("courseProgressCount : ", courseProgressCount)
-  
-	  if (!courseDetails) {
-		return res.status(400).json({
-		  success: false,
-		  message: `Could not find course with id: ${courseId}`,
-		})
-	  }
-  
-	  // if (courseDetails.status === "Draft") {
-	  //   return res.status(403).json({
-	  //     success: false,
-	  //     message: `Accessing a draft course is forbidden`,
-	  //   });
-	  // }
-  
-	  let totalDurationInSeconds = 0
-	  courseDetails.courseContent.forEach((content) => {
-		content.subSection.forEach((subSection) => {
-		  const timeDurationInSeconds = parseInt(subSection.timeDuration)
-		  totalDurationInSeconds += timeDurationInSeconds;
-		})
-	  })
-  
-	  const totalDuration = convertSecondsToDuration(totalDurationInSeconds)
-  
-	  return res.status(200).json({
-		success: true,
-		data: {
-		  courseDetails,
-		  totalDuration,
-		  
-		},
-	  })
-	} catch (error) {
-	  return res.status(500).json({
-		success: false,
-		message: error.message,
-	  })
-	}
+
+    // let courseProgressCount = await courseProgress.findOne({
+    // courseID: courseId,
+    // userID: userId,
+    // })
+
+    // console.log("courseProgressCount : ", courseProgressCount)
+
+    if (!courseDetails) {
+      return res.status(400).json({
+        success: false,
+        message: `Could not find course with id: ${courseId}`,
+      })
+    }
+
+    // if (courseDetails.status === "Draft") {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: `Accessing a draft course is forbidden`,
+    //   });
+    // }
+
+    let totalDurationInSeconds = 0
+    courseDetails.courseContent.forEach((content) => {
+      content.subSection.forEach((subSection) => {
+        const timeDurationInSeconds = parseInt(subSection.timeDuration)
+        totalDurationInSeconds += timeDurationInSeconds;
+      })
+    })
+
+    const totalDuration = convertSecondsToDuration(totalDurationInSeconds)
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        courseDetails,
+        totalDuration,
+
+      },
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    })
   }
+}

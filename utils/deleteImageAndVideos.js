@@ -1,4 +1,4 @@
-const cloudinary = require('cloudinary').v2;
+import { v2 as cloudinary } from "cloudinary";
 
 // Function to extract public IDs from multiple URLs
 const getPublicIdsFromUrls = (imageUrlArray) => {
@@ -36,7 +36,7 @@ const getPublicIdsFromUrls = (imageUrlArray) => {
 
 
 // Function to delete multiple images from Cloudinary
-exports.deleteImages = async (imageUrlArray) => {
+export const deleteImages = async (imageUrlArray) => {
   try {
     const publicIds = getPublicIdsFromUrls(imageUrlArray);
 

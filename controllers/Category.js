@@ -1,6 +1,7 @@
-const Category = require("../models/category");
+import redisClient from "../config/redis.js";
+import Category from "../models/Category.js";
 
-exports.createCategory = async (req, res) => {
+export const createCategory = async (req, res) => {
   try {
     const { name, description } = req.body;
 
@@ -31,7 +32,7 @@ exports.createCategory = async (req, res) => {
 
 //getAllcategory handler function
 
-exports.showAllCategory = async (req, res) => {
+export const showAllCategory = async (req, res) => {
   try {
     const allCategory = await Category.find(
       {},
@@ -51,13 +52,25 @@ exports.showAllCategory = async (req, res) => {
   }
 };
 
-exports.categoryPageDetails = async (req, res) => {
+export const categoryPageDetails = async (req, res) => {
   try {
     const { categoryId } = req.body;
 
     // Get courses for the specified category
     // console.log("categoryId",categoryId);
-    const selectedCategory = await Category.findById({_id:categoryId}) //populate instuctor and rating and reviews from courses
+
+    const cacheKey = `category:${categoryId}`;
+    const cached = await redisClient.get(cacheKey);
+
+    if (cached) {
+      const cachedData = JSON.parse(cached);
+      cachedData.success = true;
+
+      return res.status(200).json(cachedData);
+    }
+
+
+    const selectedCategory = await Category.findById({ _id: categoryId }) //populate instuctor and rating and reviews from courses
       .populate({
         path: "course",
         match: {
@@ -89,9 +102,9 @@ exports.categoryPageDetails = async (req, res) => {
         message: "No courses found for the selected category.",
       });
     }
-    
+
     const selectedCourses = selectedCategory.course;
-    
+
     // Get courses for other categories
     const categoriesExceptSelected = await Category.find({
       _id: { $ne: categoryId },
@@ -116,8 +129,9 @@ exports.categoryPageDetails = async (req, res) => {
     const mostSellingCourses = allCourses
       .sort((a, b) => b.sold - a.sold)
       .slice(0, 10);
-      // console.log("most selling courses",mostSellingCourses);
+    // console.log("most selling courses",mostSellingCourses);
 
+    await redisClient.set(cacheKey, JSON.stringify({ selectedCategory, selectedCourses, differentCourses, mostSellingCourses }), { EX: 60 * 60 * 24 })
     res.status(200).json({
       selectedCategory,
       selectedCourses: selectedCourses,

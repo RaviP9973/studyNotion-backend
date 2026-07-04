@@ -1,7 +1,10 @@
-const RatingAndReview = require("../models/RatingAndReview");
-const Course = require("../models/Course");
+// const RatingAndReview = require("../models/RatingAndReview");
+// const Course = require("../models/Course");
 
-exports.createRating = async (req, res) => {
+import RatingAndReview from "../models/RatingAndReview.js";
+import Course from "../models/Course.js";
+
+export const createRating = async (req, res) => {
   try {
     //get user id
     const userId = req.user.id;
@@ -62,7 +65,7 @@ exports.createRating = async (req, res) => {
 
 //get average Rating
 
-exports.getAverageRating = async (req, res) => {
+export const getAverageRating = async (req, res) => {
   try {
     //get course Id
     const {courseId} = req.body;
@@ -105,7 +108,7 @@ exports.getAverageRating = async (req, res) => {
 
 // fget all Rating and reviews
 
-exports.getAllRating = async(req,res)=>{
+export const getAllRating = async(req,res)=>{
   try {
     const allReviews = await RatingAndReview.find({}).sort({rating: "desc"})
     .populate({

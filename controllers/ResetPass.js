@@ -1,9 +1,15 @@
-const User = require("../models/User");
-require("dotenv").config();
-const mailSender = require("../utils/mailSender");
-const bcrypt = require("bcrypt")
+// const User = require("../models/User");
+// require("dotenv").config();
+// const mailSender = require("../utils/mailSender");
+// const bcrypt = require("bcrypt")
 
-exports.resetPasswordToken = async (req, res) => {
+import User from "../models/User.js";
+import dotenv from "dotenv";
+import mailSender from "../utils/mailSender.js";
+import bcrypt from "bcrypt";
+dotenv.config();
+
+export const resetPasswordToken = async (req, res) => {
   try {
     //get email form req
   const email = req.body.email;
@@ -46,7 +52,7 @@ exports.resetPasswordToken = async (req, res) => {
 //reset pass token
 
 //reset pass
-exports.resetPassword = async(req,res)=>{
+export const resetPassword = async(req,res)=>{
     try {
         // fetch data
     const {password,confirmPassword,token} = req.body;

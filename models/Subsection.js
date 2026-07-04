@@ -1,4 +1,5 @@
-const mongoose  = require("mongoose");
+// const mongoose  = require("mongoose");
+import mongoose from "mongoose";
 
 const subsectionSchema = new mongoose.Schema({
     title:{
@@ -15,4 +16,4 @@ const subsectionSchema = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model("Subsection",subsectionSchema);
+export default mongoose.model("Subsection",subsectionSchema);
