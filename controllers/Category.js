@@ -34,10 +34,23 @@ export const createCategory = async (req, res) => {
 
 export const showAllCategory = async (req, res) => {
   try {
+    const cacheKey = "categories:all";
+    const cached = await redisClient.get(cacheKey);
+
+    if (cached) {
+      const cachedData = JSON.parse(cached);
+
+      res.status(200).json({
+        success: true,
+        message: "All categories returned successfully",
+        data: JSON.parse(cachedData),
+      });
+    }
     const allCategory = await Category.find(
       {},
       { name: true, description: true }
     );
+    await redisClient.set(cacheKey, JSON.stringify({ allCategory }), { EX: 60 * 60 });
 
     res.status(200).json({
       success: true,

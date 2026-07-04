@@ -3,6 +3,7 @@
 
 import RatingAndReview from "../models/RatingAndReview.js";
 import Course from "../models/Course.js";
+import redisClient from "../config/redis.js";
 
 export const createRating = async (req, res) => {
   try {
@@ -68,33 +69,33 @@ export const createRating = async (req, res) => {
 export const getAverageRating = async (req, res) => {
   try {
     //get course Id
-    const {courseId} = req.body;
+    const { courseId } = req.body;
 
     //calculate avg rating 
     const result = await RatingAndReview.aggregate([
       {
-        $match:{
+        $match: {
           course: new mongoose.Types.objectId(courseId)
         },
       },
       {
-        $group:{
-          _id:null,
-          averageRating: { $avg:"$rating"}
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" }
         }
       }
     ])
     // return rating 
-    if(result.length > 0){
+    if (result.length > 0) {
       return res.status(200).json({
-        success:true,
+        success: true,
         averageRating: result[0].averageRating
       })
     }
 
     return res.status(200).json({
-      success:true,
-      message:"Average Rating is 0",
+      success: true,
+      message: "Average Rating is 0",
       averageRating: 0
     })
   } catch (error) {
@@ -108,29 +109,43 @@ export const getAverageRating = async (req, res) => {
 
 // fget all Rating and reviews
 
-export const getAllRating = async(req,res)=>{
+export const getAllRating = async (req, res) => {
   try {
-    const allReviews = await RatingAndReview.find({}).sort({rating: "desc"})
-    .populate({
-      path:"user",
-      select:"firstName lastName email image"
-    })
-    .populate({
-      path:"course",
-      select:"courseName"
-    }).exec();
+    // get 10 most rated reviews
+    const cacheKey = `rating:all`;
+    const cached = await redisClient.get(cacheKey);
+
+    if (cached) {
+      return res.status(200).json({
+        success: true,
+        message: "All reviews fethced successfully",
+        data: JSON.parse(cached)
+      })
+    }
+
+    const allReviews = await RatingAndReview.find({}).sort({ rating: "desc" }).limit(10)
+      .populate({
+        path: "user",
+        select: "firstName lastName email image"
+      })
+      .populate({
+        path: "course",
+        select: "courseName"
+      }).exec();
+
+    await redisClient.set(cacheKey, JSON.stringify(allReviews), "EX", 60 * 10);
 
     return res.status(200).json({
-      success:true,
-      message:"All reviews fethced successfully",
-      data:allReviews
+      success: true,
+      message: "All reviews fethced successfully",
+      data: allReviews
     })
 
   } catch (error) {
     console.log(error);
     return res.status(500).json({
-      success:false,
-      message:error.message
+      success: false,
+      message: error.message
     })
   }
 }

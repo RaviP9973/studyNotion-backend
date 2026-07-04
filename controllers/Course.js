@@ -377,7 +377,7 @@ export const getCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.body;
     const userId = req.user.id;
-    console.log(courseId);
+    // console.log(courseId);
     //find courses details.
     const courseDetails = await Course.findById({ _id: courseId })
       .populate({
@@ -401,15 +401,15 @@ export const getCourseDetails = async (req, res) => {
       userId: userId,
     });
 
-    console.log("courseProgressCount: ", courseProgressCount);
+    // console.log("courseProgressCount: ", courseProgressCount);
     //validation
     if (!courseDetails) {
-      return res.status(400).json({
+      return res.status(400).json({ 
         success: false,
         message: `Could not find the course with this ${courseId}`,
       });
     }
-    console.log(courseDetails);
+    // console.log(courseDetails);
 
     let totalDurationInSeconds = 0;
     courseDetails.courseContent.forEach((content) => {
