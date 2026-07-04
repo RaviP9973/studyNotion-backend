@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
+import redisClient from "../config/redis.js";
+
 // Cache JWT secret to avoid repeated env access (optimization)
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -20,6 +22,15 @@ export const auth = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: "Token missing",
+      });
+    }
+
+    // Check if token is blacklisted in Redis
+    const isBlacklisted = await redisClient.get(`bl_${token}`);
+    if (isBlacklisted) {
+      return res.status(401).json({
+        success: false,
+        message: "Token has been revoked",
       });
     }
 

@@ -310,3 +310,48 @@ export const changePassword = async (req, res) => {
     });
   }
 };
+
+// logout
+export const logout = async (req, res) => {
+  try {
+    const authHeader = req.header("Authorization") || req.header("authorization");
+    const tokenFromHeader = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : null;
+
+    const token = req.cookies?.token || req.body?.token || tokenFromHeader;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Token missing",
+      });
+    }
+
+    // Verify token to get expiration time
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Calculate remaining time in seconds
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeRemaining = decoded.exp - currentTime;
+
+    if (timeRemaining > 0) {
+      // Add token to Redis blacklist
+      await redisClient.set(`bl_${token}`, "true", { EX: timeRemaining });
+    }
+
+    res.clearCookie("token");
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+
+  } catch (error) {
+    console.error("Error in logout:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to log out",
+    });
+  }
+};

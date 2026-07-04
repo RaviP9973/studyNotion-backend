@@ -39,11 +39,10 @@ export const showAllCategory = async (req, res) => {
 
     if (cached) {
       const cachedData = JSON.parse(cached);
-
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: "All categories returned successfully",
-        data: JSON.parse(cachedData),
+        data: cachedData.allCategory,
       });
     }
     const allCategory = await Category.find(
@@ -58,6 +57,7 @@ export const showAllCategory = async (req, res) => {
       data: allCategory,
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       success: false,
       message: error.message,
