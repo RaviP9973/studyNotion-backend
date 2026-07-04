@@ -1,5 +1,5 @@
 import Course from "../models/Course.js";
-import Category from "../models/Category.js";
+import Category from "../models/category.js";
 import User from "../models/User.js";
 import { uploadImageToCloudinary } from "../utils/imageUploader.js";
 import courseProgress from "../models/courseProgress.js";
@@ -8,7 +8,7 @@ import { deleteImages } from "../utils/deleteImageAndVideos.js";
 import Subsection from "../models/Subsection.js";
 import Section from "../models/section.js";
 import RatingAndReview from "../models/RatingAndReview.js";
-import category from "../models/Category.js";
+
 import redisClient from "../config/redis.js";
 
 export const createCourse = async (req, res) => {
