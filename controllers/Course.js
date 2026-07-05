@@ -292,7 +292,7 @@ export const deleteCourse = async (req, res) => {
     await deleteImages([courseDetails.thumbnail]);
 
     // remove this course from the coresponding course
-    await category.findByIdAndUpdate(
+    await Category.findByIdAndUpdate(
       { _id: courseDetails.category },
       { $pull: { course: courseDetails._id } }
     );

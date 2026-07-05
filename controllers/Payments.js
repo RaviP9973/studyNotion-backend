@@ -84,7 +84,7 @@ export const capturePayment = async (req, res) => {
   };
 
   try {
-    //initiate the pauyment using razorpay
+    //initiate the payment using razorpay
     const paymentResponse = await instance.orders.create(options);
     console.log(paymentResponse);
     // return response
@@ -126,7 +126,7 @@ export const verifySignature = async (req, res) => {
     return res.status(401).json({
       success: false,
       message: "Validation failed",
-      data: error.message,
+      data: "Payment Id or Signature not found"
     });
   }
 

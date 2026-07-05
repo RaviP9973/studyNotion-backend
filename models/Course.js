@@ -67,4 +67,7 @@ const courseSchema = new mongoose.Schema(
   }
 );
 
+courseSchema.index({ instructor: 1 });
+courseSchema.index({ category: 1 });
+
 export default mongoose.model("Course", courseSchema);

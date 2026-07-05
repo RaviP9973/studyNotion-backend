@@ -5,9 +5,11 @@ import { resetPasswordToken, resetPassword } from "../controllers/ResetPass.js";
 
 import { auth } from "../middleware/auth.js";
 
-router.post("/login",login)
-router.post("/signup",signUp)
-router.post("/sendotp",sendOTP);
+import { authRateLimit } from "../middleware/rateLimit.js";
+
+router.post("/login", authRateLimit, login)
+router.post("/signup", authRateLimit, signUp)
+router.post("/sendotp", authRateLimit, sendOTP);
 router.put("/changepassword",auth,changePassword)
 router.post("/logout", logout)
 
