@@ -18,4 +18,6 @@
     ],
   });
 
+  courseProgress.index({ userId: 1, courseId: 1 });
+
   export default mongoose.model("courseProgress", courseProgress);

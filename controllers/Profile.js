@@ -1,20 +1,10 @@
-// const Profile = require("../models/Profile");
-// const Courses = require("../models/Course");
-// const User = require("../models/User");
-// const bcrypt = require("bcrypt");
-// const { uploadImageToCloudinary } = require("../utils/imageUploader");
-// const courseProgress = require("../models/courseProgress");
-// const Course = require("../models/Course");
-// const { deleteImages} = require("../utils/deleteImageAndVideos");
-// const courseProgress = require("../models/courseProgress")
-
 import Profile from "../models/Profile.js";
 import Courses from "../models/Course.js";
 import User from "../models/User.js"; 
 import bcrypt from "bcrypt";
 import { uploadImageToCloudinary } from "../utils/imageUploader.js";
 import courseProgress from "../models/courseProgress.js";
-import Course from "../models/Course.js";
+// import Course from "../models/Course.js";
 import { deleteImages } from "../utils/deleteImageAndVideos.js";
 
 export const updateProfile = async (req, res) => {
@@ -91,6 +81,12 @@ export const deleteAccount = async (req, res) => {
     // delete profile first
 
     const userDetails = await User.findById({ _id: id });
+    if (!userDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
     const progressDetails = await courseProgress.find({userId: userDetails._id});
     // console.log("progressDetails",progressDetails);
 
@@ -100,12 +96,6 @@ export const deleteAccount = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Password didn't matched",
-      });
-    }
-    if (!userDetails) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
       });
     }
 
@@ -251,9 +241,26 @@ export const getEnrolledCourses = async (req, res) => {
         },
       })
       .exec();
+    if (!userDetails) {
+      return res.status(404).json({
+        success: false,
+        message: `Could not find user with id: ${userId}`,
+      });
+    }
     userDetails = userDetails.toObject();
     // console.log("user details", userDetails)
     var SubsectionLength = 0;
+
+    const courseIds = userDetails.courses.map((course) => course._id);
+    const progressRecords = await courseProgress.find({
+      userId: userId,
+      courseId: { $in: courseIds },
+    });
+
+    const progressMap = Object.fromEntries(
+      progressRecords.map((p) => [p.courseId.toString(), p.completedVideos?.length || 0])
+    );
+
     for (var i = 0; i < userDetails.courses.length; i++) {
       let totalDurationInSeconds = 0;
       SubsectionLength = 0;
@@ -263,12 +270,9 @@ export const getEnrolledCourses = async (req, res) => {
         userDetails.courses[i].totalDuration = convertSecondsToDuration(totalDurationInSeconds);
         SubsectionLength += userDetails.courses[i].courseContent[j].subSection.length;
       }
-      let courseProgressCount = await courseProgress.findOne({
-        courseId: userDetails.courses[i]._id,
-        userId: userId,
-      });
-      // console.log("courseProgress count",courseProgressCount)
-      courseProgressCount = courseProgressCount?.completedVideos.length;
+      
+      let courseProgressCount = progressMap[userDetails.courses[i]._id.toString()] || 0;
+      
       if (SubsectionLength === 0) {
         userDetails.courses[i].progressPercentage = 100;
       } else {
@@ -281,12 +285,7 @@ export const getEnrolledCourses = async (req, res) => {
       }
     }
 
-    if (!userDetails) {
-      return res.status(400).json({
-        success: false,
-        message: `Could not find user with id: ${userDetails}`,
-      });
-    }
+    
     return res.status(200).json({
       success: true,
       data: userDetails.courses,
